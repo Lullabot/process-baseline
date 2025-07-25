@@ -85,8 +85,27 @@ Post AI interaction summary when:
 Post to issue/PR as comment using scratch file method:
 - **AI Credit**: "Completed using [AI Agent] in [IDE]"
 - **Prompt Count**: "Total user prompts: X"
-- **Chronological History**: User prompts (first 512 chars if long) + AI response summaries
-- **Character Limit**: Max 4048 characters total
+- **Chronological History**: User prompts + AI response summaries (see Character Limits below)
+- **Total Character Limit**: Max 8000 characters
+
+### Character Limits
+
+Different prompt types require different preservation approaches:
+
+#### Initial Prompts (First prompt in task/issue)
+- **Preserve COMPLETE prompt** (up to 8000 chars)
+- **Rationale**: Initial prompts establish project context, requirements, and scope
+- **Cannot be truncated** as they provide foundational understanding
+
+#### Follow-up Prompts (Subsequent prompts)
+- **Preserve first 512 characters exactly**
+- **Summarize remainder** in brackets if needed
+- **Rationale**: Can reference earlier context, focus on decisions/changes
+
+#### Total Summary Management
+- **Priority order**: Full initial prompt > key decisions > implementation details
+- **If approaching 8000 chars**: Reduce follow-up summaries, never truncate initial prompt
+- **Smart truncation**: Focus on preserving decision-making context over minor details
 
 ### Implementation
 
@@ -97,6 +116,40 @@ echo "content" > temp_scratch_pr_comment.md
 gh pr comment <PR_NUMBER> --body-file temp_scratch_pr_comment.md
 # Cleanup
 rm temp_scratch_pr_comment.md
+```
+
+### Examples
+
+#### Good: Preserving Initial Prompt Context
+```
+## AI Interaction Summary
+
+**Completed using**: Claude Sonnet in Cursor  
+**Total user prompts**: 4
+
+**Chronological History**:
+
+1. "Create a new GitHub repository called 'process-baseline' in the Lullabot organization that provides reusable Cursor AI rules for internal projects. This repo should solve specific AI behavior problems I've experienced across multiple projects. Step 1: Analyze Existing Patterns..." [FULL 2000+ char initial prompt preserved] - establishing complete project requirements and context
+
+2. "let's come back to that cd command. those aren't the wiki files in the lsm-examples repo." - correcting repository analysis approach
+
+3. "yes." - confirming wiki repository approach  
+
+4. "in that AI summary, my original first prompt was truncated. open a new issue, and let's update the ai summary guidelines..." - identifying character limit problem
+```
+
+#### Bad: Truncating Critical Initial Context
+```
+## AI Interaction Summary
+
+**Completed using**: Claude Sonnet in Cursor  
+**Total user prompts**: 4
+
+**Chronological History**:
+
+1. "Create a new GitHub repository called 'process-baseline' in the Lullabot organization that provides reusable Cursor AI rules for internal projects. This repo should solve specific AI behavior problems I've experienced across multiple projects. Step 1: Analyze..." [TRUNCATED] - repository creation task
+   
+[Context lost: pain points, solution approach, success criteria, technical requirements]
 ```
 
 ## Task Switching Protocol (MANDATORY)
