@@ -7,6 +7,87 @@ alwaysApply: true
 
 These rules solve specific problems observed across Lullabot projects where AI assistants skip critical workflow steps.
 
+## Proactive Error Resolution (MANDATORY)
+
+**Problem Solved**: AI encounters known errors but fails to check available guidelines before trying alternative approaches.
+
+### Requirements
+
+When encountering ANY tool error or unexpected behavior, you MUST immediately:
+
+1. **Recognize Error Patterns**: Identify common error types:
+   - GitHub CLI errors (especially pager-related)
+   - Tool compatibility issues (missing commands, version conflicts)
+   - Environment setup problems (PATH, variables, permissions)
+   - API authentication failures
+   - Any error that might be documented in project context
+
+2. **Check Guidelines First**: Before attempting alternative approaches:
+   - **Search memory-bank/techContext.md** for documented solutions
+   - **Check .cursor/rules** for troubleshooting sections
+   - **Review project README** for environment requirements
+   - **Look for "Environment Variables" or "Troubleshooting" sections**
+
+3. **Apply Documented Fixes**: When solution is found:
+   - **Use exact commands** provided in documentation
+   - **Apply environment fixes** immediately (e.g., `export PAGER=cat`)
+   - **Test the fix** before proceeding with original task
+   - **Reference the documentation** when explaining the solution
+
+4. **Document If Missing**: If no solution exists in guidelines:
+   - **Solve the problem** using best practices
+   - **Suggest adding** the solution to appropriate documentation
+   - **Note the gap** for future improvement
+
+### Common Error Patterns and Quick Checks
+
+#### GitHub CLI Errors
+```bash
+# Error: "head: |: No such file or directory"
+# Solution: Set PAGER environment variable
+export PAGER=cat
+# OR for single command
+PAGER=cat gh issue list
+```
+
+#### Tool Not Found Errors
+```bash
+# Check if tool is installed and in PATH
+command -v gh || echo "GitHub CLI not installed"
+which composer || echo "Composer not in PATH"
+```
+
+#### Permission/Environment Errors
+```bash
+# Check environment variables
+echo $PAGER $PATH $HOME
+# Check file permissions
+ls -la .env .git/config
+```
+
+### Implementation Process
+
+1. **Error Occurs**: Tool command fails or behaves unexpectedly
+2. **STOP**: Do not try alternative approaches immediately
+3. **SEARCH**: Check memory-bank/techContext.md for the tool name
+4. **SEARCH**: Check .cursor/rules for troubleshooting sections
+5. **APPLY**: Use documented solution if found
+6. **PROCEED**: Continue with original task after fix applied
+7. **DOCUMENT**: Note any missing documentation for future improvement
+
+### When NOT to Apply
+
+- **Genuine new errors**: Errors not seen before and not in guidelines
+- **User preferences**: When user explicitly requests different approach
+- **Emergency situations**: When user indicates urgency overrides process
+
+### Success Criteria
+
+- Known errors are resolved within 1-2 attempts using documented solutions
+- Time saved by not trying multiple alternative approaches
+- Consistent application of proven fixes across projects
+- Reduced user intervention for documented problems
+
 ## Branch Creation Protocol (MANDATORY)
 
 **Problem Solved**: AI often makes changes directly to main branch instead of creating feature branches first.
