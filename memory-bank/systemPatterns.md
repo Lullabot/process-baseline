@@ -19,6 +19,48 @@ process-baseline/
 └── memory-bank/                # Project memory bank
 ```
 
+### Install Script Dual-Mode Pattern
+
+**Architecture Decision**: Support both local (development) and remote (deployment) execution contexts
+
+```bash
+# Execution Context Detection
+if [[ -n "${BASH_SOURCE[0]:-}" ]] && [[ -f "${BASH_SOURCE[0]}" ]]; then
+    # LOCAL MODE: Running from repository
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BASELINE_DIR="$(dirname "$SCRIPT_DIR")/baseline-rules"
+    LOCAL_MODE=true
+else
+    # REMOTE MODE: Running via curl | bash  
+    LOCAL_MODE=false
+fi
+```
+
+**Local Mode (Development)**:
+- Script run directly from repository: `./install/install.sh`
+- Uses existing local baseline files
+- Full script debugging and development capabilities
+- BASH_SOURCE available for path resolution
+
+**Remote Mode (Production)**:
+- Script run via: `curl -fsSL https://raw.githubusercontent.com/.../install.sh | bash`
+- Downloads baseline files from GitHub raw URLs
+- BASH_SOURCE unavailable due to piped execution
+- Primary intended use case for end users
+
+**File Sourcing Strategy**:
+```bash
+if [[ "$LOCAL_MODE" == "true" ]]; then
+    # Copy from local files
+    cp "$BASELINE_DIR/$file" "$TARGET_DIR/"
+else
+    # Download from GitHub
+    download_file "$GITHUB_REPO/baseline-rules/$file" "$TARGET_DIR/$file"
+fi
+```
+
+**Fallback Pattern**: curl primary, wget secondary, error if neither available
+
 ### Rule File Pattern (MDC Structure)
 ```yaml
 ---

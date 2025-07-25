@@ -1,0 +1,61 @@
+# Project-Specific Overrides
+
+This file provides examples of how to override baseline process rules for project-specific needs.
+
+## Example Override: Fast Prototype Mode
+
+```markdown
+---
+description: "Project-specific overrides for fast prototyping"
+globs: 
+alwaysApply: true
+---
+
+# Project Override: Fast Prototype Mode
+
+For spike/prototype tickets PROJ-XXX through PROJ-YYY:
+
+## Branch Creation Override
+- MAY skip branch creation for experimental work under 4 hours
+- MUST create proper branch before any production-bound changes
+- MUST document "prototype work" reason in commit messages
+
+## Commit Process Override  
+- MAY use simplified commit messages for prototype commits
+- MUST still get user approval before committing
+- MUST include detailed summary in final handoff
+
+## Documentation Override
+- MAY reduce memory bank update frequency during rapid iteration
+- MUST complete comprehensive update before task handoff
+```
+
+## Example Override: Hotfix Process
+
+```markdown
+# Project Override: Emergency Hotfix Protocol
+
+For URGENT tagged tickets only:
+
+## Streamlined Process
+- MAY work directly on hotfix branches from main
+- MAY skip Plan mode for well-defined emergency fixes
+- MUST still document all changes thoroughly
+- MUST include detailed testing summary
+```
+
+## How to Activate Overrides
+
+1. Copy desired override content above
+2. Paste into new `.mdc` file in `.cursor/rules/`
+3. Customize for your project's specific needs
+4. Document when and why overrides apply
+5. Test with team to ensure effectiveness
+
+## Guidelines for Good Overrides
+
+- Be specific about when override applies
+- Maintain core safety principles (user approval, documentation)
+- Explain reasoning for deviation from baseline
+- Include examples of proper usage
+- Set clear boundaries and exceptions

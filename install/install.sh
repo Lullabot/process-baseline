@@ -6,8 +6,21 @@
 set -euo pipefail
 
 # Configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASELINE_DIR="$(dirname "$SCRIPT_DIR")/baseline-rules"
+GITHUB_REPO="https://raw.githubusercontent.com/Lullabot/process-baseline/main"
+
+# Determine if we're running locally or remotely
+if [[ -n "${BASH_SOURCE[0]:-}" ]] && [[ -f "${BASH_SOURCE[0]}" ]]; then
+    # Running locally from the repository
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BASELINE_DIR="$(dirname "$SCRIPT_DIR")/baseline-rules"
+    LOCAL_MODE=true
+else
+    # Running remotely via curl | bash
+    SCRIPT_DIR=""
+    BASELINE_DIR=""
+    LOCAL_MODE=false
+fi
+
 TARGET_DIR=".cursor/rules"
 BACKUP_DIR=".cursor/rules-backup-$(date +%Y%m%d-%H%M%S)"
 
@@ -56,6 +69,9 @@ EXAMPLES:
     $0 --dry-run --merge       # Preview merge operation
     $0 --backup-only           # Just backup existing rules
 
+REMOTE USAGE:
+    curl -fsSL https://raw.githubusercontent.com/Lullabot/process-baseline/main/install/install.sh | bash
+
 The script will:
 1. Backup existing .cursor/rules if they exist
 2. Install baseline rules (core.mdc, workflow-enforcement.mdc, memory-bank.mdc)
@@ -63,6 +79,21 @@ The script will:
 4. Create .gitignore entries for temp files
 
 EOF
+}
+
+# Download file from GitHub
+download_file() {
+    local url="$1"
+    local output="$2"
+    
+    if command -v curl > /dev/null 2>&1; then
+        curl -fsSL "$url" -o "$output"
+    elif command -v wget > /dev/null 2>&1; then
+        wget -q "$url" -O "$output"
+    else
+        log_error "Neither curl nor wget found. Cannot download files."
+        exit 1
+    fi
 }
 
 # Parse command line arguments
@@ -110,19 +141,23 @@ validate_environment() {
         exit 1
     fi
     
-    # Check if baseline files exist
-    if [[ ! -d "$BASELINE_DIR" ]]; then
-        log_error "Baseline rules directory not found: $BASELINE_DIR"
-        exit 1
-    fi
-    
-    local required_files=("core.mdc" "workflow-enforcement.mdc" "memory-bank.mdc")
-    for file in "${required_files[@]}"; do
-        if [[ ! -f "$BASELINE_DIR/$file" ]]; then
-            log_error "Required baseline file missing: $file"
+    if [[ "$LOCAL_MODE" == "true" ]]; then
+        # Check if baseline files exist locally
+        if [[ ! -d "$BASELINE_DIR" ]]; then
+            log_error "Baseline rules directory not found: $BASELINE_DIR"
             exit 1
         fi
-    done
+        
+        local required_files=("core.mdc" "workflow-enforcement.mdc" "memory-bank.mdc")
+        for file in "${required_files[@]}"; do
+            if [[ ! -f "$BASELINE_DIR/$file" ]]; then
+                log_error "Required baseline file missing: $file"
+                exit 1
+            fi
+        done
+    else
+        log_info "Running in remote mode - files will be downloaded from GitHub"
+    fi
     
     log_success "Environment validation passed"
 }
@@ -157,10 +192,23 @@ install_baseline_rules() {
     # Create target directory
     mkdir -p "$TARGET_DIR"
     
-    # Copy baseline files
-    cp "$BASELINE_DIR/core.mdc" "$TARGET_DIR/"
-    cp "$BASELINE_DIR/workflow-enforcement.mdc" "$TARGET_DIR/"
-    cp "$BASELINE_DIR/memory-bank.mdc" "$TARGET_DIR/"
+    local required_files=("core.mdc" "workflow-enforcement.mdc" "memory-bank.mdc")
+    
+    if [[ "$LOCAL_MODE" == "true" ]]; then
+        # Copy from local baseline directory
+        for file in "${required_files[@]}"; do
+            cp "$BASELINE_DIR/$file" "$TARGET_DIR/"
+            log_info "Installed: $file"
+        done
+    else
+        # Download from GitHub
+        for file in "${required_files[@]}"; do
+            local url="$GITHUB_REPO/baseline-rules/$file"
+            log_info "Downloading: $file"
+            download_file "$url" "$TARGET_DIR/$file"
+            log_info "Installed: $file"
+        done
+    fi
     
     log_success "Baseline rules installed"
 }
@@ -314,6 +362,7 @@ display_summary() {
     log_info "Installation Summary"
     echo "=================="
     echo "Mode: $MODE"
+    echo "Local Mode: $LOCAL_MODE"
     echo "Dry Run: $DRY_RUN"
     echo "Backup Only: $BACKUP_ONLY"
     
@@ -340,7 +389,7 @@ display_summary() {
         echo "3. Initialize memory-bank/ directory if not exists"
         echo "4. Test with your team and iterate as needed"
         echo ""
-        log_info "For updates: git pull in process-baseline repo and re-run script"
+        log_info "For updates: Re-run this script to get latest baseline rules"
     fi
 }
 
