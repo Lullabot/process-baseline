@@ -2,13 +2,34 @@
 
 ## Current Task Status
 
-**Primary Focus**: Validation and adoption planning (NEXT PHASE)  
-**Recent Achievement**: Character limit improvements MERGED to main (PR #3)  
-**Status**: Core implementation complete, moving to validation phase
+**Primary Focus**: Validation and adoption planning (CURRENT PHASE)  
+**Recent Achievement**: Install script fixes completed - remote installation now works  
+**Previous Achievement**: Character limit improvements MERGED to main (PR #3)  
+**Status**: Core implementation complete, install issues resolved, active validation phase
 
-## Recent Changes (Last Session)
+## Recent Changes (Current Session)
 
-### Character Limit Enhancement (Issue #2, PR #3)
+### Install Script Fixes (URGENT - USER REPORTED)
+
+**Problem Identified**:
+- Install script failed when run remotely via `curl | bash` (primary use case)
+- Two critical errors: `BASH_SOURCE[0]: unbound variable` and missing baseline-rules directory
+- Prevented users from installing process baseline in their projects
+
+**Solution Implemented**:
+- **Fixed BASH_SOURCE issue**: Added detection for local vs remote execution context
+- **Added remote download capability**: Downloads baseline files from GitHub when not available locally  
+- **Improved error handling**: Script now works seamlessly in both local and remote modes
+- **Enhanced user feedback**: Clear indication of execution mode and download progress
+
+**Files Modified**:
+- `install/install.sh`: Complete rewrite of execution context detection and file sourcing
+  - Added LOCAL_MODE detection using BASH_SOURCE availability check
+  - Implemented download_file() function with curl/wget fallback
+  - Added remote mode that downloads files from GitHub raw URLs
+  - Updated validation logic to handle both execution modes
+
+### Character Limit Enhancement (Issue #2, PR #3) - PREVIOUS SESSION
 
 **Problem Identified**: 
 - Uniform 512/4048 character limits were truncating critical initial prompts
@@ -30,7 +51,12 @@
 ## Next Steps
 
 ### Immediate Actions Needed
-1. **Validation and testing** (CURRENT PHASE)
+1. **Install script validation** (CURRENT PRIORITY)
+   - ✅ Fixed remote installation via curl | bash (COMPLETED)
+   - Test installation on different systems and project types
+   - Verify backup/restore functionality works correctly
+   
+2. **Character limit validation** (ONGOING)
    - Test new character limits with complex real-world scenarios
    - Validate initial prompt preservation vs follow-up truncation
    - Gather feedback from practical usage
@@ -42,6 +68,11 @@
 5. **Documentation updates** if guidelines need refinement
 
 ## Active Decisions
+
+### RESOLVED: Install Script Architecture  
+- **Decision**: Support both local and remote execution modes
+- **Rationale**: Primary use case is remote installation via curl | bash, but local development also needed
+- **Implementation**: BASH_SOURCE detection with GitHub download fallback
 
 ### RESOLVED: Character Limit Strategy
 - **Decision**: Implement differentiated character limits for AI summaries

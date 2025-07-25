@@ -1,0 +1,172 @@
+---
+description: "Memory bank requirements for Lullabot projects"
+globs: 
+alwaysApply: true
+---
+# Memory Bank Requirements
+
+AI assistants have memory resets between sessions, making comprehensive documentation critical for project continuity. This file establishes mandatory memory bank standards adapted from successful Lullabot project patterns.
+
+## Core Principle
+
+The Memory Bank is your ONLY link to previous work after memory resets. It must be maintained with precision and clarity, as AI effectiveness depends entirely on its accuracy.
+
+## Required Files Structure
+
+Create `memory-bank/` directory with these mandatory files:
+
+### 1. projectbrief.md (REQUIRED)
+- **Purpose**: Foundation document that shapes all other files
+- **Content**: Core requirements, goals, and scope
+- **When**: Created at project start if it doesn't exist
+- **Importance**: Source of truth for project scope and direction
+
+### 2. productContext.md (REQUIRED) 
+- **Purpose**: Why this project exists and how it should work
+- **Content**: Problems solved, user experience goals, business context
+- **Updates**: When requirements change or scope evolves
+- **Audience**: Helps AI understand the "why" behind technical decisions
+
+### 3. activeContext.md (REQUIRED)
+- **Purpose**: Current work focus and immediate context  
+- **Content**: Recent changes, next steps, active decisions
+- **Updates**: EVERY significant work session
+- **Critical**: Most frequently referenced file for ongoing work
+
+### 4. systemPatterns.md (REQUIRED)
+- **Purpose**: System architecture and key technical decisions
+- **Content**: Design patterns, component relationships, architectural choices
+- **Updates**: When making structural changes or design decisions
+- **Value**: Prevents architectural inconsistencies
+
+### 5. techContext.md (REQUIRED)
+- **Purpose**: Technologies, setup, and constraints
+- **Content**: Stack details, development setup, dependencies, limitations
+- **Updates**: When changing technologies or development environment
+- **Critical**: Ensures AI works within project constraints
+
+### 6. progress.md (REQUIRED)
+- **Purpose**: Current status and completion tracking
+- **Content**: What works, what's left to build, known issues
+- **Updates**: After completing features or discovering issues
+- **Value**: Prevents duplicate work and tracks overall progress
+
+## File Relationships
+
+```mermaid
+flowchart TD
+    PB[projectbrief.md] --> PC[productContext.md]
+    PB --> SP[systemPatterns.md]
+    PB --> TC[techContext.md]
+    
+    PC --> AC[activeContext.md]
+    SP --> AC
+    TC --> AC
+    
+    AC --> P[progress.md]
+```
+
+## Update Requirements
+
+### Mandatory Update Triggers
+
+You MUST update memory bank files when:
+
+1. **User requests "update memory bank"** - Review ALL files, focus on activeContext.md and progress.md
+2. **Discovering new project patterns** - Update systemPatterns.md
+3. **After implementing significant changes** - Update progress.md and activeContext.md
+4. **Context needs clarification** - Update relevant context files
+5. **Starting new work session** - Review and update activeContext.md
+
+### Update Process
+
+When updating memory bank:
+1. **Review ALL files** - Even if some don't need changes
+2. **Document current state** - Capture accurate project status
+3. **Clarify next steps** - Update activeContext.md with clear direction
+4. **Update patterns** - Document any new technical patterns discovered
+
+## Optional Extended Files
+
+Create additional files/folders within `memory-bank/` when helpful:
+
+- **Complex feature documentation** - For major feature specifications
+- **Integration specifications** - For external system integrations  
+- **API documentation** - For API design and usage patterns
+- **Testing strategies** - For test patterns and coverage
+- **Deployment procedures** - For deployment processes and configurations
+
+## Quality Standards
+
+### Content Requirements
+
+- **Be specific**: Avoid vague descriptions
+- **Include context**: Explain why decisions were made
+- **Reference examples**: Link to specific files/code when relevant
+- **Document assumptions**: Note assumptions and constraints
+- **Track changes**: Note when and why things changed
+
+### Format Standards
+
+- Use consistent Markdown formatting
+- Include clear headings and structure
+- Use code blocks for technical examples
+- Link between related files
+- Keep content scannable with bullet points and short paragraphs
+
+## Integration with .cursor/rules
+
+Memory bank updates often reveal patterns worth capturing in `.cursor/rules`:
+
+- **Critical implementation paths** discovered during work
+- **User preferences** and workflow patterns
+- **Project-specific patterns** that differ from defaults
+- **Known challenges** and their solutions
+- **Tool usage patterns** specific to the project
+
+## Error Recovery
+
+If memory bank is incomplete or outdated:
+
+1. **Stop current work** until documentation is updated
+2. **Read existing files** to understand current state
+3. **Ask user for clarification** on unclear aspects
+4. **Update systematically** starting with projectbrief.md
+5. **Validate understanding** before proceeding with work
+
+## Project Customization
+
+### What CAN Be Customized
+
+- File naming conventions (maintain core information)
+- Directory structure (keep logical organization)
+- Additional files for project-specific needs
+- Update frequency for stable projects
+
+### What CANNOT Be Customized
+
+- Requirement for the six core files
+- Mandate to update when triggered
+- Principle of comprehensive documentation
+- Need to maintain current and accurate information
+
+### Customization Examples
+
+```markdown
+# Project Override: Minimal Documentation Mode
+For small maintenance projects:
+- MAY combine systemPatterns.md and techContext.md
+- MUST maintain activeContext.md and progress.md
+- SHOULD update after each significant change
+```
+
+## Success Metrics
+
+A well-maintained memory bank enables:
+- **Seamless handoffs** between work sessions
+- **Consistent decision making** across team members
+- **Quick context restoration** after breaks
+- **Effective collaboration** with other developers
+- **Historical understanding** of project evolution
+
+The memory bank is not overhead - it's the foundation that makes AI assistance truly effective across time and team members.

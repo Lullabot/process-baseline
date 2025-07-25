@@ -1,0 +1,243 @@
+---
+description: "Workflow enforcement rules addressing common AI behavior problems"
+globs: 
+alwaysApply: true
+---
+# Workflow Enforcement Rules
+
+These rules solve specific problems observed across Lullabot projects where AI assistants skip critical workflow steps.
+
+## Branch Creation Protocol (MANDATORY)
+
+**Problem Solved**: AI often makes changes directly to main branch instead of creating feature branches first.
+
+### Requirements
+
+You MUST create a feature branch before making ANY file changes:
+
+1. **Check current branch**: Run `git branch --show-current` 
+2. **If on main/master**: Create feature branch immediately
+3. **Branch naming**: Use format `[ticket-id]--[short-description]` or `feature/[description]`
+4. **No exceptions** unless user explicitly provides documented reason
+
+### Implementation Steps
+
+```bash
+# REQUIRED before any file edits
+git checkout -b feature/your-branch-name
+# OR with ticket reference  
+git checkout -b PROJ-123--implement-feature
+```
+
+### When NOT to Create Branch
+
+- User explicitly states "work directly on main" with documented reason
+- Repository is in single-commit initialization phase
+- Project uses different branching strategy (document in commit message)
+
+## Commit Review Process (MANDATORY)
+
+**Problem Solved**: AI skips review processes and uses poor commit messages.
+
+### Requirements
+
+Before ANY commit, you MUST:
+
+1. **Create scratch file**: `temp_scratch_commit_msg.md` (auto-ignored)
+2. **Review changes**: Show user `git diff --cached` and `git diff` output
+3. **Draft message**: Write detailed commit message in scratch file
+4. **User approval**: Get explicit approval before committing
+5. **Execute**: `git commit -F temp_scratch_commit_msg.md`
+6. **Cleanup**: Remove scratch file after successful commit
+
+### Commit Message Format
+
+```
+type(scope): Brief description - Refs #123
+
+Detailed explanation of:
+- What was changed and why
+- Testing performed  
+- Any risks or considerations
+- Links to relevant tickets/docs
+```
+
+### Check Before Committing
+
+- **Branch status**: If branch pushed, MUST create new commit (no amending)
+- **File permissions**: Flag any unintentional permission changes
+- **Scope verification**: Ensure all changes are related and in scope
+
+## AI Summary Requirements (MANDATORY)
+
+**Problem Solved**: AI completes tasks without posting interaction summaries, losing context for humans.
+
+### When Required
+
+Post AI interaction summary when:
+- Task is complete and ready for handoff
+- Switching to different task or context
+- User explicitly requests summary
+- Creating or updating pull requests
+
+### Summary Format
+
+Post to issue/PR as comment using scratch file method:
+- **AI Credit**: "Completed using [AI Agent] in [IDE]"
+- **Prompt Count**: "Total user prompts: X"
+- **Chronological History**: User prompts + AI response summaries (see Character Limits below)
+- **Total Character Limit**: Max 8000 characters
+
+### Character Limits
+
+Different prompt types require different preservation approaches:
+
+#### Initial Prompts (First prompt in task/issue)
+- **Preserve COMPLETE prompt** (up to 8000 chars)
+- **Rationale**: Initial prompts establish project context, requirements, and scope
+- **Cannot be truncated** as they provide foundational understanding
+
+#### Follow-up Prompts (Subsequent prompts)
+- **Preserve first 512 characters exactly**
+- **Summarize remainder** in brackets if needed
+- **Rationale**: Can reference earlier context, focus on decisions/changes
+
+#### Total Summary Management
+- **Priority order**: Full initial prompt > key decisions > implementation details
+- **If approaching 8000 chars**: Reduce follow-up summaries, never truncate initial prompt
+- **Smart truncation**: Focus on preserving decision-making context over minor details
+
+### Implementation
+
+```bash
+# Create scratch file
+echo "content" > temp_scratch_pr_comment.md
+# Post comment  
+gh pr comment <PR_NUMBER> --body-file temp_scratch_pr_comment.md
+# Cleanup
+rm temp_scratch_pr_comment.md
+```
+
+### Examples
+
+#### Good: Preserving Initial Prompt Context
+```
+## AI Interaction Summary
+
+**Completed using**: Claude Sonnet in Cursor  
+**Total user prompts**: 4
+
+**Chronological History**:
+
+1. "Create a new GitHub repository called 'process-baseline' in the Lullabot organization that provides reusable Cursor AI rules for internal projects. This repo should solve specific AI behavior problems I've experienced across multiple projects. Step 1: Analyze Existing Patterns..." [FULL 2000+ char initial prompt preserved] - establishing complete project requirements and context
+
+2. "let's come back to that cd command. those aren't the wiki files in the lsm-examples repo." - correcting repository analysis approach
+
+3. "yes." - confirming wiki repository approach  
+
+4. "in that AI summary, my original first prompt was truncated. open a new issue, and let's update the ai summary guidelines..." - identifying character limit problem
+```
+
+#### Bad: Truncating Critical Initial Context
+```
+## AI Interaction Summary
+
+**Completed using**: Claude Sonnet in Cursor  
+**Total user prompts**: 4
+
+**Chronological History**:
+
+1. "Create a new GitHub repository called 'process-baseline' in the Lullabot organization that provides reusable Cursor AI rules for internal projects. This repo should solve specific AI behavior problems I've experienced across multiple projects. Step 1: Analyze..." [TRUNCATED] - repository creation task
+   
+[Context lost: pain points, solution approach, success criteria, technical requirements]
+```
+
+## Task Switching Protocol (MANDATORY)
+
+**Problem Solved**: Context loss when AI changes focus without proper handoff.
+
+### Requirements
+
+Before switching to new task, you MUST:
+
+1. **Complete current work**: Commit or stash all changes
+2. **Document status**: Update relevant tickets/PRs with current status
+3. **Post summary**: If task incomplete, explain what's done and what's next
+4. **Clean workspace**: Return to main branch if appropriate
+
+### Status Update Template
+
+```
+## Current Status
+- [x] Completed: [list]
+- [ ] In Progress: [current item]
+- [ ] Next Steps: [planned work]
+
+## Context for Next Developer
+- Key decisions made: [summary]
+- Known issues: [any blockers]
+- Files modified: [list]
+```
+
+## Pull Request Finalization (MANDATORY)
+
+**Problem Solved**: Inconsistent PR practices and missing review steps.
+
+### Pre-Merge Checklist
+
+1. **Linting**: Run `npm run lint:md` and fix violations
+2. **Visual Documentation**: Post before/after screenshots
+3. **Scope Verification**: Review diff and confirm all changes in scope
+4. **Testing Summary**: Document what was tested and what wasn't
+5. **Link Issues**: Use "Fixes #123" in PR body
+6. **Request Review**: Move to "Ready for Review" status
+
+### Exception Handling
+
+If instructed to use admin override:
+1. **Document justification**: Post comment explaining user's reasoning
+2. **Use exact justification**: Include user's provided reasoning verbatim
+3. **Proceed with caution**: Only if user explicitly authorized
+
+## Customization Guidelines
+
+### What CAN Be Overridden
+
+- Branch naming conventions (document alternative)
+- Commit message format (maintain detail requirement)
+- Summary frequency (may reduce for prototype work)
+- Review process timing (may streamline for hotfixes)
+
+### What CANNOT Be Overridden
+
+- Branch creation requirement (safety critical)
+- User approval for commits (prevents accidents)
+- AI summary inclusion in final deliverables
+- Documentation of exceptions and reasoning
+
+### How to Override
+
+1. **Document in project**: Add to project-specific `.cursor/rules`
+2. **Explain reasoning**: Why override is needed
+3. **Specify scope**: When override applies
+4. **Maintain intent**: Keep the underlying safety/quality goals
+
+### Override Example
+
+```markdown
+# Project Override: Fast Prototype Mode
+For spike/prototype tickets only:
+- MAY skip branch creation for experimental work
+- MUST still document all changes in final summary
+- MUST create proper branch before any production-bound changes
+```
+
+## Error Recovery
+
+If workflow steps are skipped:
+1. **Stop current work**: Don't continue until process is followed
+2. **Explain requirement**: Reference this baseline and why it matters
+3. **Implement correctly**: Follow proper steps even if it means backtracking
+4. **Document learning**: Note what went wrong to prevent repetition
+
+These rules exist to prevent costly mistakes and ensure consistent quality across all Lullabot projects. Individual project needs can be accommodated through documented overrides while maintaining core safety principles.

@@ -44,4 +44,4 @@ coverage/
 # Build directories (if we add build processes)
 dist/
 build/
-out/ 
+out/ # Process baseline temp files
