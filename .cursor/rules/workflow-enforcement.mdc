@@ -30,9 +30,10 @@ When encountering ANY tool error or unexpected behavior, you MUST immediately:
 
 3. **Apply Documented Fixes**: When solution is found:
    - **Use exact commands** provided in documentation
-   - **Apply environment fixes** immediately (e.g., `export PAGER=cat`)
+   - **Apply environment fixes for shell session** (e.g., `export PAGER=cat` once per session)
    - **Test the fix** before proceeding with original task
    - **Reference the documentation** when explaining the solution
+   - **Avoid repeating exports** - environment variables persist in shell session
 
 4. **Document If Missing**: If no solution exists in guidelines:
    - **Solve the problem** using best practices
@@ -44,10 +45,14 @@ When encountering ANY tool error or unexpected behavior, you MUST immediately:
 #### GitHub CLI Errors
 ```bash
 # Error: "head: |: No such file or directory"
-# Solution: Set PAGER environment variable
+# Solution: Set PAGER environment variable for entire shell session (preferred)
 export PAGER=cat
-# OR for single command
+
+# Alternative for single commands (less efficient)
 PAGER=cat gh issue list
+
+# Alternative approach used in some repos
+unset PAGER
 ```
 
 #### Tool Not Found Errors
@@ -87,6 +92,7 @@ ls -la .env .git/config
 - Time saved by not trying multiple alternative approaches
 - Consistent application of proven fixes across projects
 - Reduced user intervention for documented problems
+- Efficient use of environment variables (once per shell session, not repeated)
 
 ## Branch Creation Protocol (MANDATORY)
 
