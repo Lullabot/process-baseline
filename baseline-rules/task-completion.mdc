@@ -1,0 +1,286 @@
+---
+description: "Complete task lifecycle workflow from implementation to delivery"
+globs: 
+alwaysApply: true
+---
+# Task Completion Workflow
+
+**Problem Solved**: AI assistants often consider tasks "complete" when code changes are made, but this leaves work in an incomplete state requiring manual follow-up. True task completion means the work is fully integrated and the issue is resolved.
+
+## Core Principle
+
+A task is NOT complete until:
+- ✅ **Code is implemented and tested**
+- ✅ **Changes are committed with proper documentation**  
+- ✅ **Pull request is created and linked to issue**
+- ✅ **PR passes review and all checks**
+- ✅ **PR is merged to main branch**
+- ✅ **Issue is closed**
+- ✅ **Clean workspace ready for next task**
+
+## Complete Task Lifecycle
+
+### Phase 1: Implementation and Testing
+
+#### 1. **Development Work**
+- Implement changes following requirements
+- Test thoroughly with both success and failure scenarios
+- Use `--dry-run` flags when available for validation
+- Document any deviations from original plan
+
+#### 2. **Pre-Commit Review Process** (MANDATORY)
+Always review changes before committing:
+```bash
+# Check what files have changed
+git status
+
+# Review all unstaged changes  
+git diff
+
+# Stage specific files after review
+git add file1 file2
+
+# Review staged changes before committing
+git diff --cached
+
+# Only then commit with confidence
+git commit -F temp_scratch_commit_msg.md
+```
+
+#### 3. **Commit Process** (MANDATORY)
+Following workflow enforcement rules:
+
+1. **Create scratch file**: `temp_scratch_commit_msg.md`
+2. **Review changes**: Show complete `git diff --cached` and `git diff` output
+3. **Draft message**: Write detailed commit message in scratch file
+4. **User approval**: Get explicit approval before committing
+5. **Execute**: `git commit -F temp_scratch_commit_msg.md`
+6. **Cleanup**: Remove scratch file after successful commit
+
+**Commit Message Format:**
+```
+type(scope): Brief description - Refs #123
+
+Detailed explanation of:
+- What was changed and why
+- Testing performed  
+- Any risks or considerations
+- Links to relevant tickets/docs
+```
+
+### Phase 2: Pull Request Creation and Management
+
+#### 4. **Push Branch**
+```bash
+git push -u origin <branch-name>
+```
+
+#### 5. **Handle Pull Request** (MANDATORY)
+Follow the scratch file method for all PR operations:
+
+**Check for existing PR:**
+```bash
+gh pr list --head <branch-name>
+```
+
+**If no PR exists:**
+- **Draft PR Body**: Create `temp_scratch_pr_body.md` with comprehensive description
+- **Link to Issue**: Include "Fixes #123" or "Closes #123" in PR body
+- **Descriptive Title**: Reference issue number and brief description
+- **Create PR**: `gh pr create --title "<title>" --body-file temp_scratch_pr_body.md --base "main"`
+- **Cleanup**: Remove scratch file after success
+
+**If PR exists:**
+- Move from Draft to "Ready for Review": `gh pr ready <PR_NUMBER>`
+- Post status update if work incomplete
+
+### Phase 3: Pre-Merge Validation
+
+#### 6. **Merge Protocol Checks** (MANDATORY)
+
+Before requesting merge, validate:
+
+**Linting and Quality:**
+```bash
+# Run markdown linting if applicable
+npm run lint:md
+
+# Fix any violations found
+```
+
+**Visual Documentation:**
+- Post "before and after" screenshots if UI changes
+- Include command output examples if CLI changes
+
+**Scope Verification:**
+- Review PR diff programmatically
+- Confirm all changes are in scope
+- Explain any out-of-scope changes or propose separation
+
+**Testing Summary:**
+- Document what was tested and what wasn't
+- Include specific commands and results
+- Note any edge cases or limitations
+
+### Phase 4: AI Interaction Documentation
+
+#### 7. **Post AI Interaction Summary** (MANDATORY)
+Document the AI-assisted work session for continuity:
+
+**Create summary comment:**
+- **Create scratch file**: `temp_scratch_pr_comment.md`  
+- **Post to PR**: `gh pr comment <PR_NUMBER> --body-file temp_scratch_pr_comment.md`
+- **Cleanup**: Remove scratch file after posting
+
+**AI Summary Format:**
+```markdown
+## AI Interaction Summary
+
+**Completed using**: [AI Agent] in [IDE]  
+**Total user prompts**: X
+
+**Chronological History**:
+1. "first prompt exactly as typed..." - brief context
+2. "second prompt exactly as typed..." - brief context
+
+**Key Decisions Made**:
+- Technical approach chosen and why
+- Testing strategy implemented  
+- Any architecture or process changes
+
+**Technical Implementation**:
+- Files modified and purpose
+- Commands executed for testing
+- Integration points validated
+```
+
+**Character Limits:**
+- **Maximum 4048 characters** for entire summary
+- **Preserve first 512 characters** of each prompt exactly
+- **Include total prompt count** in header
+- **Priority**: Task-defining > decision-making > technical > clarification prompts
+
+### Phase 5: Merge and Integration
+
+#### 8. **Confirm Merge** (MANDATORY)
+After PR creation/update and summary posting:
+- **User Approval Required**: Confirm with user before merging
+- **No Auto-Merge**: Always get explicit approval
+
+#### 9. **Execute Merge**
+```bash
+gh pr merge <PR_NUMBER> --merge
+```
+
+#### 10. **Verify Issue Closure**
+Check if issue was automatically closed by "Fixes #123":
+```bash
+gh issue view <ISSUE_NUMBER>
+```
+
+If not automatically closed, close manually with reference to merged PR.
+
+### Phase 6: Cleanup and Handoff
+
+#### 11. **Clean Base for Next Task** (MANDATORY)
+```bash
+git checkout main && git pull
+```
+
+This ensures next task starts with latest changes and clean state.
+
+#### 12. **Task Switching Documentation** (If Applicable)
+When switching to different task before completion, document in issue comment:
+
+- **Session summary** with chronological prompt history
+- **Current state** and what's completed vs pending
+- **Context for resumption** with specific next steps
+- **Testing status** and what still needs validation
+
+## Integration with Existing Rules
+
+### Branch Creation Protocol
+- Must create feature branch before ANY file changes
+- Branch naming: `[ticket-id]--[short-description]`
+- No exceptions unless explicitly documented
+
+### Proactive Error Resolution  
+- Check guidelines immediately when encountering errors
+- Apply documented fixes (e.g., `export PAGER=cat` once per session)
+- Don't try alternative approaches before checking documentation
+
+### Testing Requirements
+- Always test with `--dry-run` when available
+- Cover both success and failure scenarios
+- Document specific commands and results
+- Test with real data when possible
+
+## Quality Gates
+
+### Cannot Proceed to Next Phase If:
+- **Implementation**: Tests failing, requirements not met
+- **Commit**: Changes not reviewed, commit message incomplete
+- **PR Creation**: Branch not pushed, description inadequate  
+- **Pre-Merge**: Linting errors, scope violations, missing documentation
+- **Merge**: User approval not obtained, checks failing
+
+### Task NOT Complete Until:
+- All code changes implemented and tested
+- All commits follow standards with proper messages
+- PR created with comprehensive documentation  
+- All quality checks pass (linting, scope, testing)
+- AI interaction summary posted for continuity
+- PR merged to main branch with user approval
+- Issue closed (automatically or manually)
+- Workspace cleaned for next task
+
+## Project Customization
+
+### What CAN Be Customized
+- Testing requirements for specific project types
+- PR template content and required sections
+- Documentation detail level for internal vs client projects
+- Review process timing for hotfixes vs features
+
+### What CANNOT Be Customized
+- Requirement for user approval before commits and merges
+- AI interaction summary inclusion in deliverables  
+- Issue closure requirement for task completion
+- Clean workspace requirement for next task
+
+### Override Example
+```markdown
+# Project Override: Internal Tooling
+For internal tool projects:
+- MAY use simpler PR descriptions for obvious changes
+- MUST still include AI summary and testing documentation
+- MUST still get user approval for merges
+```
+
+## Success Metrics
+
+A well-executed task completion workflow provides:
+- **Zero manual follow-up** required after "task complete"
+- **Complete audit trail** of decisions and implementation
+- **Seamless handoffs** between developers and AI assistants
+- **Consistent quality** across all delivered work
+- **Reduced context loss** between work sessions
+
+## Common Anti-Patterns to Avoid
+
+❌ **"Code complete" = task complete**
+✅ **Merged PR + closed issue = task complete**
+
+❌ **Commit without review**  
+✅ **Always review changes before committing**
+
+❌ **PR without comprehensive description**
+✅ **Link to issue, testing summary, change explanation**
+
+❌ **Merge without user approval**
+✅ **Explicit approval required for all merges**
+
+❌ **Switch tasks without documentation**
+✅ **Document context before any task switching**
+
+This workflow ensures consistent, high-quality task completion while maintaining clear documentation and effective team collaboration across all AI-assisted development work.
