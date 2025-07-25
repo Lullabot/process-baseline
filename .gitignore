@@ -44,4 +44,8 @@ coverage/
 # Build directories (if we add build processes)
 dist/
 build/
-out/ # Process baseline temp files
+out/
+
+# Process baseline temp files
+temp_scratch_*.md
+.cursor/rules-backup-*

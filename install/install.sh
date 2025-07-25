@@ -135,10 +135,20 @@ done
 validate_environment() {
     log_info "Validating environment..."
     
-    # Check if we're in a git repository
-    if ! git rev-parse --git-dir > /dev/null 2>&1; then
-        log_error "Not in a git repository. Please run from project root."
+    # Change to git repository root
+    local git_root
+    git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+    if [[ $? -ne 0 ]]; then
+        log_error "Not in a git repository. Please run from a git repository."
         exit 1
+    fi
+    
+    if [[ "$(pwd)" != "$git_root" ]]; then
+        log_info "Changing to git repository root: $git_root"
+        cd "$git_root" || {
+            log_error "Failed to change to git repository root"
+            exit 1
+        }
     fi
     
     if [[ "$LOCAL_MODE" == "true" ]]; then
@@ -261,6 +271,14 @@ setup_gitignore() {
         log_info "[DRY RUN] Would add to .gitignore:"
         printf '%s\n' "${gitignore_entries[@]}"
         return
+    fi
+    
+    # Ensure .gitignore ends with newline before adding entries
+    if [[ -f ".gitignore" ]] && [[ -s ".gitignore" ]]; then
+        # Check if last character is not a newline
+        if [[ "$(tail -c1 .gitignore)" != "" ]]; then
+            echo "" >> .gitignore
+        fi
     fi
     
     # Add entries to .gitignore if not already present
