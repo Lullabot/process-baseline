@@ -104,17 +104,46 @@ You MUST create a feature branch before making ANY file changes:
 
 1. **Check current branch**: Run `git branch --show-current` 
 2. **If on main/master**: Create feature branch immediately
-3. **Branch naming**: Use format `[ticket-id]--[short-description]` or `feature/[description]`
+3. **Branch naming**: Follow this workflow:
+   - **Preferred**: `[issue-number]--[short-description]` (e.g., `5--standardize-branch-naming`)
+   - **If no issue exists**: Prompt to create issue first for tracking
+   - **Fallback** (if issue creation declined): Use `feature/[description]` or `bug/[description]`
 4. **No exceptions** unless user explicitly provides documented reason
 
 ### Implementation Steps
 
 ```bash
-# REQUIRED before any file edits
-git checkout -b feature/your-branch-name
-# OR with ticket reference  
-git checkout -b PROJ-123--implement-feature
+# STEP 1: Check if work is tracked in an issue
+# If yes: Use issue number format
+git checkout -b 123--brief-description
+
+# If no issue exists:
+# - FIRST: Ask user "Should we create an issue for tracking?"
+# - If yes: Create issue, then use issue number format
+# - If no: Use descriptive fallback format
+git checkout -b feature/brief-description
+# OR for bug fixes
+git checkout -b bug/brief-description
 ```
+
+### Examples
+
+**With Issues (Preferred)**:
+- Issue #4: `4--install-script-remote-fixes`
+- Issue #7: `7--memory-bank-template-fixes`
+- Issue #12: `12--documentation-improvements`
+
+**Fallback Patterns**:
+- New feature: `feature/add-dark-mode-toggle`
+- Bug fix: `bug/fix-mobile-navigation`
+- Experiment: `feature/test-new-deployment-approach`
+
+### Why This Approach
+
+- **Issue tracking encouraged**: Links code changes to documented requirements
+- **Automation friendly**: Tools can parse issue numbers from branch names
+- **Practical fallback**: Accommodates quick fixes and experimental work
+- **Clear categorization**: `feature/` and `bug/` provide semantic meaning
 
 ### When NOT to Create Branch
 
